@@ -1,0 +1,10 @@
+aws_region: us-east-1
+aws_zone1: us-east-1d
+aws_zone2: us-east-1e
+subnet_geoserver: 10.0.1.0/24
+subnet_rds: 10.0.2.0/24
+gs_aws_image: ami-0b33d91d
+gs_aws_instance_type: m4.2xlarge
+jmeter_aws_image: ami-f4cc1de2
+jmeter_aws_instance_type: m4.xlarge
+rds_aws_instance_type: db.m3.xlarge

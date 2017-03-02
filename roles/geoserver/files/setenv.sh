@@ -1,0 +1,8 @@
+export CATALINA_OPTS="$CATALINA_OPTS -Xms512m"
+export CATALINA_OPTS="$CATALINA_OPTS -Xmx6G"
+export CATALINA_OPTS="$CATALINA_OPTS -XX:MaxPermSize=256m"
+export CATALINA_OPTS="$CATALINA_OPTS -XX:SoftRefLRUPolicyMSPerMB=36000"
+export CATALINA_OPTS="$CATALINA_OPTS -Dorg.geotoools.render.lite.scale.unitCompensation=true"
+export CATALINA_OPTS="$CATALINA_OPTS -Dorg.geotools.referencing.forceXY=true"
+export CATALINA_OPTS="$CATALINA_OPTS -Dgeogig.ignorescreenmap=true"
+export JAVA_OPTS="-Xbootclasspath/a:/opt/apache-tomcat/webapps/geoserver/WEB-INF/lib/marlin-0.7.3-Unsafe.jar -Dsun.java2d.renderer=org.marlin.pisces.PiscesRenderingEngine"

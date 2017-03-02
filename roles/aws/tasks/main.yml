@@ -1,0 +1,205 @@
+### Create Gig VPC ###
+- name: "Provision VPC in {{ aws_region }}"
+  ec2_vpc_net:
+    cidr_block: 10.0.0.0/16
+    region: "{{ aws_region }}"
+    name: geogig-qa
+  register: vpc
+  tags:
+    - vpcsetup
+- debug: var=vpc
+
+### Create Internet Gateway ###
+- name: Set Internet Gateway
+  ec2_vpc_igw:
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ aws_region }}"
+  register: gig_qa_igw
+  tags:
+    - vpcsetup
+
+### Create geoserver Subnet ###
+- name: Create GeoServer Subnet
+  ec2_vpc_subnet:
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ aws_region }}"
+    cidr: "{{ subnet_geoserver }}"
+    az: "{{ aws_zone1 }}"
+    resource_tags:
+      Name: GeoServer-GeoGig Subnet
+  register: geoserver_subnet
+  tags:
+    - vpcsetup
+
+### Create db Subnet ### 
+- name: Create DB Subnet
+  ec2_vpc_subnet:
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ aws_region }}"
+    cidr: "{{ subnet_rds }}"
+    az: "{{ aws_zone2 }}"
+    resource_tags:
+      Name: GeoGig-DB Subnet
+  register: db_subnet
+  tags:
+    - vpcsetup
+- debug: var=db_subnet
+
+### Create subnet group ### insufficient perms via API, had to use management console
+# - name: Create subnet group for RDS
+#   rds_subnet_group:
+#     state: present
+#     name: geogig-qa-group
+#     region: "{{ aws_region }}"
+#     description: GeoGig performance testing group
+#     subnets:
+#       - "{{ geoserver_subnet.subnet.id }}"
+#       - "{{ db_subnet.subnet.id }}"
+
+### Create geoserver Subnet Route Table ###
+- name: Set up geoserver Subnet route table
+  ec2_vpc_route_table:
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ aws_region }}"
+    subnets:
+      - "{{ geoserver_subnet.subnet.id }}"
+    routes:
+      - dest: 10.0.0.0/16
+        gateway_id: local
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ gig_qa_igw.gateway_id }}"
+    resource_tags:
+      Name: GIG-QA geoserver table
+  tags:
+    - vpcsetup
+
+### Create db Subnet Route Table ###
+- name: Set up db Subnet route table
+  ec2_vpc_route_table:
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ aws_region }}"
+    subnets:
+      - "{{ db_subnet.subnet.id }}"
+    routes:
+      - dest: 10.0.0.0/16
+        gateway_id: local
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ gig_qa_igw.gateway_id }}"
+    resource_tags:
+      Name: GIG-QA db table
+  tags:
+    - vpcsetup
+
+### Create gig-qa Security Group ###
+- name: Provision gig-qa Security Group
+  local_action:
+        module: ec2_group
+        state: present
+        name: geogig-qa-sg
+        description: "GeoGig qa security group"
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ aws_region }}"
+        rules:
+          - proto: tcp
+            to_port: 5432
+            from_port: 5432
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            to_port: 8080
+            from_port: 8080
+            cidr_ip: 0.0.0.0/0
+          - proto: icmp
+            from_port: -1
+            to_port: -1
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: all
+            from_port: all
+            to_port: all
+            cidr_ip: 0.0.0.0/0
+  retries: 5
+  register: gig_qa_securitygroup
+  tags:
+    - vpcsetup
+
+### Create geoserver Instance ###
+- name: Launch geoserver instance
+  ec2:
+    vpc_subnet_id: "{{ geoserver_subnet.subnet.id }}"
+    region: "{{ aws_region }}"
+    keypair: mthompson
+    group_id: "{{ gig_qa_securitygroup.group_id }}"
+    image: "{{ gs_aws_image }}"
+    instance_type: "{{ gs_aws_instance_type }}"
+    source_dest_check: false
+    instance_tags:
+      type: "gig-qa-geoserver"
+      Name: "GIG-QA geoserver"
+    exact_count: 1
+    count_tag:
+      type: "gig-qa-geoserver"
+      Name: "GIG-QA geoserver"
+    wait: yes
+  register: geoserver
+  tags:
+    - vpcsetup
+
+- name: Set the fact for NAT Instance variable
+  set_fact:
+    geoserver_instance="{{ geoserver.instances[0].id }}"
+  when: geoserver|changed
+  tags:
+    - vpcsetup
+
+### Associate Elastic IP to geoserver Instance ###
+- name: Associate an EIP to the geoserver instance
+  ec2_eip:
+    device_id: "{{ geoserver_instance }}"
+    region: "{{ aws_region }}"
+    in_vpc: yes
+  when: geoserver|changed
+  tags:
+    - vpcsetup
+
+- name: Launch jmeter instance
+  ec2:
+    vpc_subnet_id: "{{ geoserver_subnet.subnet.id }}"
+    region: "{{ aws_region }}"
+    keypair: mthompson
+    assign_public_ip: false
+    group_id: "{{ gig_qa_securitygroup.group_id }}"
+    image: "{{ jmeter_aws_image }}"
+    instance_type: "{{ jmeter_aws_instance_type }}"
+    instance_tags:
+      type: "gig-qa-jmeter"
+      Name: "GIG-QA jmeter"
+    exact_count: 1
+    count_tag:
+      type: "gig-qa-jmeter"
+      Name: "GIG-QA jmeter"
+    wait: yes
+  register: gig-qa_jmeter
+  tags:
+    -machinesetup
+    
+- name: Launch rds instance
+  rds:
+    command: create
+    instance_name: gig-qa-rds
+    instance_type: "{{ rds_aws_instance_type }}"
+    region: "{{ aws_region }}"
+    subnet: gig-qa-subnet-group
+    multi_zone: yes
+    db_engine: postgres
+    engine_version: 9.5.4
+    size: 100
+    db_name: geogig_qa_rds
+    username: postgres
+    password: geogigpostgres
+    tags:
+      Environment: performance testing
+      Application: GeoGig, GeoServer

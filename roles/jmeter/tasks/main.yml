@@ -1,0 +1,17 @@
+### install java
+- name: install java
+  apt:
+    name: openjdk-8-jre-headless
+    state: present
+    
+### install jmeter
+- name: install jmeter
+  unarchive:
+    src: http://httpd-mirror.frgl.pw/apache//jmeter/binaries/apache-jmeter-3.1.tgz
+    dest: /opt/
+
+- name: add jmeter to PATH
+  shell: export PATH=$PATH:/opt/apache-jmeter-3.1/bin
+### pull test suite from git given repo & branch
+
+### run jmeter commands, store results on deploy server

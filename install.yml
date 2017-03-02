@@ -1,0 +1,6 @@
+- name: Provision geogig-geoserver instance
+  hosts: tag_type_GIG_QA_geoserver
+  remote_user: ec2-user
+  sudo: yes
+  roles:
+    - geoserver

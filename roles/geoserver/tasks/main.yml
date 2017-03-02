@@ -1,0 +1,81 @@
+### install java and maven
+- name: install java
+  yum:
+    name: java-1.8.0-openjdk
+    state: present
+
+- name: uninstall java 1.7
+  yum:
+    name: java-1.7.0-openjdk
+    state: absent
+    
+- name: install tomcat8
+  unarchive:
+    src: http://mirror.its.dal.ca/apache/tomcat/tomcat-8/v8.5.11/bin/apache-tomcat-8.5.11.zip
+    dest: /opt
+    
+- name: rename tomcat folder
+  command: mv /opt/apache-tomcat-8.5.11 /opt/apache-tomcat
+
+- name: copy tomatcat env file
+  copy:
+    src: setenv.sh
+    dest: /opt/apache-tomcat/bin/
+
+- name: install maven
+  unarchive:
+    src: http://apache.parentingamerica.com/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
+    dest: /opt
+    
+- name: setup env vars
+  shell: setEnvVars.sh
+
+### build geogig from git repo and branch name
+- name: Pull geogig from git
+  git:
+    repo: git://locationtech/geogig.git
+    dest: ~/
+    version: "{{ geogig_branch }}"
+    
+- name: build geogig
+  command: mvn clean install -DskipTests
+  args:
+    chdir: ~/geogig/src/parent
+
+### get geoserver
+- name: Pull geoserver from git
+  git:
+    repo: git://geoserver/geoserver.git
+    dest: ~/
+    version: "{{ geoserver_branch }}"
+    
+- name: build geoserver
+  command: mvn clean install -DskipTests -Pgeogig
+  args:
+    chrdir: ~/geoserver/src
+  
+  ###build war
+- name: build WAR
+  command: mvn install
+  args:
+    chdir: ~/geoserver/web/app
+    
+- name: deploy war
+  unarchive: 
+    src: ~/geoserver/web/app/target/geoserver.war
+    dest: /opt/apache-tomcat/webapps/
+    remote_src: yes
+
+- name: install marlin
+  get_url:
+    src: https://github.com/bourgesl/marlin-renderer/releases/download/v0.7.5_2/marlin-0.7.5-Unsafe.jar
+    dest: /opt/apache-tomcat/webapps/geoserver/WEB-INF/lib/
+    
+# - name: setup geogig
+#   shell: geogigSetup.sh
+  
+### setup geogig repos (script)
+  ### setup via CLI
+  ### add to GeoServer (until Alex's PR is in will have to setup using init endpoint)
+  
+### prepare for jmeter tests???
