@@ -11,8 +11,9 @@
     
 - name: install tomcat8
   unarchive:
-    src: http://mirror.its.dal.ca/apache/tomcat/tomcat-8/v8.5.11/bin/apache-tomcat-8.5.11.zip
+    src: "http://mirror.its.dal.ca/apache/tomcat/tomcat-8/v8.5.11/bin/apache-tomcat-8.5.11.zip"
     dest: /opt
+    remote_src: yes
     
 - name: rename tomcat folder
   command: mv /opt/apache-tomcat-8.5.11 /opt/apache-tomcat
@@ -26,6 +27,7 @@
   unarchive:
     src: http://apache.parentingamerica.com/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
     dest: /opt
+    remote_src: yes
     
 - name: setup env vars
   shell: setEnvVars.sh
