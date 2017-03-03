@@ -45,16 +45,16 @@
     - vpcsetup
 - debug: var=db_subnet
 
-### Create subnet group ### insufficient perms via API, had to use management console
-# - name: Create subnet group for RDS
-#   rds_subnet_group:
-#     state: present
-#     name: geogig-qa-group
-#     region: "{{ aws_region }}"
-#     description: GeoGig performance testing group
-#     subnets:
-#       - "{{ geoserver_subnet.subnet.id }}"
-#       - "{{ db_subnet.subnet.id }}"
+## Create subnet group ###
+- name: Create subnet group for RDS
+  rds_subnet_group:
+    state: present
+    name: geogig-qa-group
+    region: "{{ aws_region }}"
+    description: GeoGig performance testing group
+    subnets:
+      - "{{ geoserver_subnet.subnet.id }}"
+      - "{{ db_subnet.subnet.id }}"
 
 ### Create geoserver Subnet Route Table ###
 - name: Set up geoserver Subnet route table
@@ -192,7 +192,7 @@
     instance_name: gig-qa-rds
     instance_type: "{{ rds_aws_instance_type }}"
     region: "{{ aws_region }}"
-    subnet: gig-qa-subnet-group
+    subnet: geogig-qa-group
     multi_zone: yes
     db_engine: postgres
     engine_version: 9.5.4
@@ -202,4 +202,4 @@
     password: geogigpostgres
     tags:
       Environment: performance testing
-      Application: GeoGig, GeoServer
+      Application: GeoGig_GeoServer
