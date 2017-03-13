@@ -1,13 +1,28 @@
+- name: Set geoserver public IP in ssh.cfg
+  hosts: tag_type_gig_qa_geoserver
+  gather_facts: false
+  vars:
+    eip: "{{ hostvars[inventory_hostname]['ec2_ip_address'] }}"
+  tasks:
+  - name: update IP for gateway post-deploy
+    lineinfile: 
+      dest:   "ssh.cfg"
+      regexp: ec2-user@ 
+      insertafter: ec2-user@ 
+      line: "  ProxyCommand  ssh -W %h:%p ec2-user@{{ eip }}"
+    delegate_to: 127.0.0.1
+
 - name: Provision geogig-geoserver instance
   hosts: tag_type_gig_qa_geoserver
+  # sudo: yes
   remote_user: ec2-user
-  sudo: yes
   roles:
     - geoserver
     
 - name: Provision jmeter instance
   hosts: tag_type_gig_qa_jmeter
+  become: yes
   remote_user: ubuntu
-  sudo: yes
+  # become_user: ubuntu
   roles:
     - jmeter
