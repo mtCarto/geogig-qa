@@ -1,2 +1,3 @@
 geogig_branch: master
 geoserver_branch: master
+maven_version: 3.3.9
