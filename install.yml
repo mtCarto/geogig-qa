@@ -14,7 +14,6 @@
 
 - name: Provision geogig-geoserver instance
   hosts: tag_type_gig_qa_geoserver
-  # sudo: yes
   remote_user: ec2-user
   roles:
     - geoserver
@@ -22,7 +21,6 @@
 - name: Provision jmeter instance
   hosts: tag_type_gig_qa_jmeter
   become: yes
-  remote_user: ubuntu
-  # become_user: ubuntu
+  remote_user: ec2-user
   roles:
     - jmeter

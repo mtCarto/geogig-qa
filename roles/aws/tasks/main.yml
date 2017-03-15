@@ -135,7 +135,7 @@
     group_id: "{{ gig_qa_securitygroup.group_id }}"
     image: "{{ gs_aws_image }}"
     instance_type: "{{ gs_aws_instance_type }}"
-    source_dest_check: false
+    source_dest_check: no
     instance_tags:
       type: "gig-qa-geoserver"
       Name: "GIG-QA geoserver"
@@ -148,7 +148,7 @@
   tags:
     - vpcsetup
 
-- name: Set the fact for NAT Instance variable
+- name: Set the fact for GeoServer Instance variable
   set_fact:
     geoserver_instance="{{ geoserver.instances[0].id }}"
   when: geoserver|changed
@@ -170,7 +170,7 @@
     vpc_subnet_id: "{{ geoserver_subnet.subnet.id }}"
     region: "{{ aws_region }}"
     keypair: mthompson
-    assign_public_ip: false
+    assign_public_ip: true
     group_id: "{{ gig_qa_securitygroup.group_id }}"
     image: "{{ jmeter_aws_image }}"
     instance_type: "{{ jmeter_aws_instance_type }}"
@@ -193,13 +193,14 @@
     instance_type: "{{ rds_aws_instance_type }}"
     region: "{{ aws_region }}"
     subnet: geogig-qa-group
+    vpc_security_groups: "{{ gig_qa_securitygroup.group_id }}"
     multi_zone: yes
     db_engine: postgres
     engine_version: 9.5.4
     size: 100
     db_name: geogig_qa_rds
     username: postgres
-    password: geogigpostgres
+    password: Open4Good
     tags:
       Environment: performance testing
       Application: GeoGig_GeoServer
