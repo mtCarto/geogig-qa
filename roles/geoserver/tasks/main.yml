@@ -17,23 +17,23 @@
     state: present
   become: true
   
+- name: install curl
+  yum:
+    name: curl
+    state: present
+  become: true
+ 
 - name: install tomcat8
-  unarchive:
-    src: "http://mirror.its.dal.ca/apache/tomcat/tomcat-8/v8.5.11/bin/apache-tomcat-8.5.11.zip"
-    dest: /opt
-    remote_src: yes
+  yum:
+    name: tomcat8
+    state: present
   become: true
-    
-- name: rename tomcat folder
-  command: mv /opt/apache-tomcat-8.5.11 /opt/apache-tomcat
-  args:
-    creates: /opt/apache-tomcat
-  become: true
-
-- name: copy tomatcat env file
+  
+- name: copy tomatcat conf file
   copy:
-    src: setenv.sh
-    dest: /opt/apache-tomcat/bin/
+    src: tomcat8.conf
+    dest: /usr/share/tomcat8/conf
+    group: tomcat
   become: true
 
 - name: install maven
@@ -79,7 +79,7 @@
 #     
 - name: make war dir in tomcat
   file:
-    path: /opt/apache-tomcat/webapps/geoserver
+    path: /usr/share/tomcat8/webapps/geoserver
     state: directory
   become: true
 # 
@@ -89,7 +89,7 @@
 #   
   #can't recursively copy directories with remote_src
 - name: copy war to tomcat
-  shell: sudo cp -fr /home/ec2-user/geoserver_war/* /opt/apache-tomcat/webapps/geoserver
+  shell: sudo cp -fr /home/ec2-user/geoserver_war/* /usr/share/tomcat8/webapps/geoserver
 #   
 - name: install marlin
   get_url:
@@ -100,7 +100,7 @@
 - name: copy marlin to tomcat
   copy: 
     src: /home/ec2-user/marlin-0.7.5-Unsafe.jar
-    dest: /opt/apache-tomcat/webapps/geoserver/WEB-INF/lib
+    dest: /usr/share/tomcat8/webapps/geoserver/WEB-INF/lib
     remote_src: yes
   become: true
     
@@ -112,23 +112,11 @@
     owner: ec2-user
   become: true
     
-- name: copy tomcat settings
-  copy: 
-    src: setenv.sh
-    dest: /opt/apache-tomcat/bin
-    mode: 0600
-  become: true
-    
-- name: make bin dir executable
-  shell: sudo chmod -R 777 /opt/apache-tomcat/bin/*.sh
-  
-- name: make logs rw
-  shell: sudo chmod -R 644 /opt/apache-tomcat/logs
-  
 - name: start geoserver
-  command: ./startup.sh
-  args:
-    chdir: /opt/apache-tomcat/bin
+  service:
+    name: tomcat8
+    state: started
   become: true
-     
-# - name: setup geogig, call geogig play
+  
+#setup geogig
+- include: geogig.yml

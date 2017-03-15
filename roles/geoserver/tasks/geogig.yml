@@ -1,0 +1,73 @@
+- name: get RDS endpoint
+  local_action:
+    rds command=facts instance_name=gig-qa-rds region="{{ aws_region }}"
+  register: rds
+  
+- debug:
+    var: rds.instance.endpoint
+    verbosity: 3
+
+- name: ensure psql is available
+  yum:
+    name: postgresql95
+    state: present
+  become: true
+
+- name: download sample data from S3
+  s3:
+    bucket: geogig-qa
+    object: /performance-test-data/counties.sql
+    dest: /home/ec2-user/counties.sql
+    mode: get
+
+- name: create db for data
+  postgresql_db:
+    name: test_data
+    login_host: "{{ rds_endpoint }}"
+    login_user: postgres
+    login_password: Open4Good 
+    state: present
+  
+- name: add postgis to test_data db
+  postgresql_ext:
+    name: postgis
+    db: test_data
+    login_host: "{{ rds_endpoint }}"
+    login_user: postgres
+    login_password: Open4Good 
+    state: present
+    
+#load test data into postgis table
+- name: restore counties data
+  command: psql -f counties.sql postgres
+
+- name: create db for Geogig repos
+  postgresql_db:
+    name: geogig_repos
+    login_host: "{{ rds_endpoint }}"
+    login_user: postgres
+    login_password: Open4Good 
+    state: present
+    
+- name: copy geogig setup script
+  copy: 
+    src: setupGeoGig.sh
+    dest: /home/ec2-user
+    mode: 0700
+    owner: ec2-user
+  
+### setup geogig repos in geoserver & RDS
+- name: run initial geogig setup
+  shell: ./setupGeoGig.sh "{{ rds.instance.endpoint }}"
+
+###### make a separte top level play for running tests ######
+
+### run baseline tests (call jmeter test play)
+
+### create index
+# gg --repo "postgresql://10.0.1.227:5432/geogig/mapstory?user=postgres&password=Open4Good"  create-index --tree nysstreets --attribute geom
+
+### run indexed tests (call jmeter test play)
+
+
+
