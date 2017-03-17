@@ -7,23 +7,30 @@
     var: rds.instance.endpoint
     verbosity: 3
 
+- name: install psycopg2
+  yum: 
+    name: python27-psycopg2
+    state: present
+  become: true
+  
 - name: ensure psql is available
   yum:
     name: postgresql95
     state: present
   become: true
 
-- name: download sample data from S3
-  s3:
-    bucket: geogig-qa
-    object: /performance-test-data/counties.sql
-    dest: /home/ec2-user/counties.sql
-    mode: get
+# auth problem
+# - name: download sample data from S3
+#   s3:
+#     bucket: geogig-qa
+#     object: /performance-test-data/counties.sql
+#     dest: /home/ec2-user/counties.sql
+#     mode: get
 
 - name: create db for data
   postgresql_db:
     name: test_data
-    login_host: "{{ rds_endpoint }}"
+    login_host: "{{ rds.instance.endpoint }}"
     login_user: postgres
     login_password: Open4Good 
     state: present
@@ -32,19 +39,33 @@
   postgresql_ext:
     name: postgis
     db: test_data
-    login_host: "{{ rds_endpoint }}"
+    login_host: "{{ rds.instance.endpoint }}"
     login_user: postgres
     login_password: Open4Good 
     state: present
+
+- name: prepare postgis table for counties data
+  command: psql -U postgres -h "{{ rds.instance.endpoint }}" -d test_data -c 'create domain bigdate as bigint'
+  environment: 
+    PGPASSWORD: Open4Good
+  ignore_errors: true
     
+- name: create mapstory user for counties data
+  command: psql -U postgres -h "{{ rds.instance.endpoint }}" -d test_data -c 'create role mapstory'
+  environment: 
+    PGPASSWORD: Open4Good
+  ignore_errors: true
+  
 #load test data into postgis table
 - name: restore counties data
-  command: psql -f counties.sql postgres
+  command: psql -h "{{ rds.instance.endpoint }}" -f counties.sql test_data -U postgres
+  environment: 
+    PGPASSWORD: Open4Good
 
 - name: create db for Geogig repos
   postgresql_db:
     name: geogig_repos
-    login_host: "{{ rds_endpoint }}"
+    login_host: "{{ rds.instance.endpoint }}"
     login_user: postgres
     login_password: Open4Good 
     state: present
