@@ -1,5 +1,7 @@
 geogig_branch: master
-geoserver_branch: master
+#2.9.x, 2.10.x, 2.11.x, master
+geoserver_version: 2.11.x
+geoserver_short_version: 2.11
 maven_version: 3.3.9
 aws_region: us-east-1
 

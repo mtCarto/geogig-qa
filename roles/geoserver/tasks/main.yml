@@ -61,7 +61,7 @@
   git:
     repo: https://github.com/geoserver/geoserver.git
     dest: /home/ec2-user/geoserver
-    version: "{{ geoserver_branch }}"
+    version: "{{ geoserver_version }}"
     
 - name: copy maven build script
   copy:
