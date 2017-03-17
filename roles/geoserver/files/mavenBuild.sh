@@ -6,7 +6,7 @@ echo "Building GeoGig"
 cd /home/ec2-user/geogig/src/parent && mvn clean install -DskipTests
 
 echo "Building GeoServer"
-cd /home/ec2-user/geoserver/src && mvn clean install -DskipTests
+cd /home/ec2-user/geoserver/src && mvn clean install -DskipTests -Pgeogig
 
 echo "Building War"
 cd /home/ec2-user/geoserver/src/web/app && mvn install
