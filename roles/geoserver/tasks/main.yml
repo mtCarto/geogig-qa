@@ -115,7 +115,7 @@
 - name: start geoserver
   service:
     name: tomcat8
-    state: started
+    state: restarted
   become: true
   
 #setup geogig

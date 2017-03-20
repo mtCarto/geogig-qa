@@ -62,6 +62,12 @@
   environment: 
     PGPASSWORD: Open4Good
 
+- name: set postgres as new owner of counties table
+  command: psql -U postgres -h "{{ rds.instance.endpoint }}" -d test_data -c 'alter table us_histcounties_gen001_no_index owner to postgres'
+  environment: 
+    PGPASSWORD: Open4Good
+  ignore_errors: true
+
 - name: create db for Geogig repos
   postgresql_db:
     name: geogig_repos
