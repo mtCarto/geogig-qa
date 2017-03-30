@@ -19,14 +19,45 @@
     state: present
   become: true
 
+- name: create test_data directory
+  file: 
+    path: /home/ec2-user/test_data
+    state: directory
+    
 # auth problem
-# - name: download sample data from S3
+# - name: download sample counties data from S3
 #   s3:
 #     bucket: geogig-qa
 #     object: /performance-test-data/counties.sql
-#     dest: /home/ec2-user/counties.sql
+#     dest: /home/ec2-user/test_data/counties.sql
 #     mode: get
 
+# - name: download sample streets data from S3
+#   s3:
+#     bucket: geogig-qa
+#     object: /performance-test-data/NYstreets_lion.zip
+#     dest: /home/ec2-user/test_data/NYstreets_lion.zip
+#     mode: get
+
+# - name: unzip streets data
+#   unarchive:
+#     src: /home/ec2-user/test_data/NYstreets_lion.zip
+#     dest: /home/ec2-user/test_data/
+#     remote_src: true
+
+# - name: download sample buildings data from S3
+#   s3:
+#     bucket: geogig-qa
+#     object: /performance-test-data/building_footprints.zip
+#     dest: /home/ec2-user/test_data/building_footprints.zip
+#     mode: get
+
+# - name: unzip streets data
+#   unarchive:
+#     src: /home/ec2-user/test_data/building_footprints.zip
+#     dest: /home/ec2-user/test_data/
+#     remote_src: true
+    
 - name: create db for data
   postgresql_db:
     name: test_data
@@ -58,7 +89,7 @@
   
 #load test data into postgis table
 - name: restore counties data
-  command: psql -h "{{ rds.instance.endpoint }}" -f counties.sql test_data -U postgres
+  command: psql -h "{{ rds.instance.endpoint }}" -f /home/ec2-user/test_data/counties.sql test_data -U postgres
   environment: 
     PGPASSWORD: Open4Good
 
@@ -87,14 +118,9 @@
 - name: run initial geogig setup
   shell: ./setupGeoGig.sh "{{ rds.instance.endpoint }}"
 
-###### make a separte top level play for running tests ######
-
-### run baseline tests (call jmeter test play)
-
-### create index
-# gg --repo "postgresql://10.0.1.227:5432/geogig/mapstory?user=postgres&password=Open4Good"  create-index --tree nysstreets --attribute geom
-
-### run indexed tests (call jmeter test play)
-
-
+- name: copy indexing script
+  copy:
+    src: index_gig_repos.sh
+    dest: /home/ec2-user
+    mode: 0777
 
