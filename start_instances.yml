@@ -1,0 +1,20 @@
+- hosts: test_boxes
+  gather_facts: false
+  tasks:
+  - name: start AWS instances
+    local_action:
+      module: ec2
+      state: 'running'
+      region: us-east-1
+      instance_ids: "{{ hostvars[inventory_hostname]['ec2_id'] }}"
+      
+- hosts: tag_type_gig_qa_geoserver
+  gather_facts: false
+  tasks:
+  - name: wait for geosever machine to be up
+    local_action: wait_for port=22 host="{{ ansible_ssh_host | default(inventory_hostname) }}" search_regex=OpenSSH delay=30 timeout=300
+  - name: start geoserver
+      service:
+        name: tomcat8
+        state: started
+      become: true
