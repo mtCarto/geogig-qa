@@ -25,7 +25,33 @@
     regexp="export PATH"
     line="export PATH=$PATH{{':'}}/opt/apache-jmeter-3.1/bin"
  
-### pull test suite from git given repo & branch
+- name: make tests dir
+  file: 
+    path: /home/ec2-user/jmeter_tests
+    state: directory
+    mode: 0700
+    
+- name: make results dir
+  file:
+    path: /home/ec2-user/jmeter_tests/results
+    state: directory
+    mode: 0666
+    
+- name: copy jmeter tests
+  unarchive: 
+    src: jmeter_tests.zip
+    dest: /home/ec2-user/jmeter_tests
+    mode: 0777
+    
+- name: copy bboxes
+  unarchive:
+    src: bboxes.zip
+    dest: /home/ec2-user/jmeter_tests
+    
+- name: copy test runner script
+  copy:
+    src: run_jmeter.sh
+    dest: /home/ec2-user
+    mode: 0777
 
-
-### run jmeter play (runs the tests)
+### run the tests

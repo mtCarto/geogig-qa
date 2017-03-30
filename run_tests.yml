@@ -1,0 +1,47 @@
+- name: run baseline jmeter tests
+  hosts: tag_type_gig_qa_jmeter
+  remote_user: ec2-user
+  pre_tasks:
+  - name: get geoserver private ip
+    sudo: no
+    local_action:
+      module: ec2_remote_facts
+      region: us-east-1
+      filters:
+        "tag:Name":  GIG-QA geoserver
+        instance-state-name: running
+    register: gs_facts
+  vars:
+      gs_ip: "{{ gs_facts.instances[0].ec2_ip_address }}"
+  tasks:
+    #look into replacing with a sed script
+  - name: update geoserver ip
+    lineinfile: "dest=~/jmeter_tests/NYstreets.jmx regexp=(centos) line='            <stringProp name="HTTPSampler.domain">"{{ gs_ip }}"</stringProp>'"
+  - name: update geoserver ip
+    lineinfile: "dest=~/jmeter_tests/NYbuildings.jmx regexp=(centos) line='            <stringProp name="HTTPSampler.domain">"{{ gs_ip }}"</stringProp>'"
+  - name: update geoserver ip
+    lineinfile: "dest=~/jmeter_tests/counties.jmx regexp=(centos) line='            <stringProp name="HTTPSampler.domain">"{{ gs_ip }}"</stringProp>'"
+  - name: run jmeter tests
+    command: ./run_jmeter.sh base
+    
+- name: Provision geogig-geoserver instance
+  hosts: tag_type_gig_qa_geoserver
+  remote_user: ec2-user
+  pre_tasks:
+  - name: get RDS endpoint
+    local_action:
+      rds command=facts instance_name=gig-qa-rds region="{{ aws_region }}"
+    register: rds
+  vars:
+    rds_endpoint: "{{ rds.instance.endpoint }}"
+  tasks:
+  - name: index the geogig repos
+    command: ./index_gig_repos.sh "{{ rds_endpoint }}"
+    
+- name: run indexed jmeter tests
+  hosts: tag_type_gig_qa_jmeter
+  remote_user: ec2-user
+  tasks:
+  - name: run jmeter tests
+    command: ./run_jmeter.sh index
+  
