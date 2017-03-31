@@ -1,11 +1,13 @@
 #!/bin/bash
-# #set pass in env for psql
+
+#set pass in env for psql
 export PGPASSWORD="Open4Good"
-# #pass rds endpoint as argument
+#pass rds endpoint as argument
 export HOST="$1"
 export PGREPO="postgresql://$HOST:5432/geogig_repos/counties?user=postgres&password=$PGPASSWORD"
 export PGREPO_nys="postgresql://$HOST:5432/geogig_repos/NY_streets?user=postgres&password=$PGPASSWORD"
 export PGREPO_nyb="postgresql://$HOST:5432/geogig_repos/NY_buildings?user=postgres&password=$PGPASSWORD"
+export PGREPO_nybike="postgresql://$HOST:5432/geogig_repos/NY_bikepaths?user=postgres&password=$PGPASSWORD"
 export PATH="$PATH:/home/ec2-user/geogig/src/cli-app/target/geogig/bin"
 
 #create workspace for repos
@@ -38,7 +40,7 @@ curl -v -u admin:geoserver -XPOST -H "Content-type: text/xml" -d "<featureType><
 # ##have to manually recalculate BBOX using SRS bounds or WMS requests will fail
 # #could implement REST param for recalculate=srsbbox, see existing recalculate=nativebbox
 
-#ny streets data
+#########ny streets data
 curl -X PUT -H "Content-Type: application/json" -d "{
         \"dbHost\": \"$HOST\", 
         \"dbPort\": \"5432\",
@@ -60,7 +62,7 @@ geogig --repo $PGREPO_nys commit -m "initial import"
 #publish
 curl -v -u admin:geoserver -XPOST -H "Content-type: text/xml" -d "<featureType><name>NYstreets_lion</name></featureType>" http://localhost:8080/geoserver/rest/workspaces/gig/datastores/NY_streets_store/featuretypes
 
-#ny buildings data
+#######ny buildings data
 curl -X PUT -H "Content-Type: application/json" -d "{
         \"dbHost\": \"$HOST\", 
         \"dbPort\": \"5432\",
@@ -81,3 +83,25 @@ geogig --repo $PGREPO_nyb add
 geogig --repo $PGREPO_nyb commit -m "initial import"
 #publish
 curl -v -u admin:geoserver -XPOST -H "Content-type: text/xml" -d "<featureType><name>building_0117</name></featureType>" http://localhost:8080/geoserver/rest/workspaces/gig/datastores/NY_buildings_store/featuretypes
+
+######ny bikepaths data
+curl -X PUT -H "Content-Type: application/json" -d "{
+        \"dbHost\": \"$HOST\", 
+        \"dbPort\": \"5432\",
+        \"dbName\": \"geogig_repos\",
+        \"dbSchema\": \"public\",
+        \"dbUser\": \"postgres\",
+        \"dbPassword\": \"$PGPASSWORD\",
+        \"authorName\": \"geogig\",
+        \"authorEmail\": \"geogig@geogig.org\"
+}" "http://localhost:8080/geoserver/geogig/repos/NY_bikepaths/init"
+
+curl -v -u admin:geoserver -XPOST -H "Content-type: text/xml" -d "<dataStore><name>NY_bikepath_store</name><connectionParameters><entry key=\"geogig_repository\">geoserver://NY_bikepaths</entry></connectionParameters></dataStore>" http://localhost:8080/geoserver/rest/workspaces/gig/datastores
+
+geogig --repo $PGREPO_nybike config --global user.name tester
+geogig --repo $PGREPO_nybike config --global user.email tester@test.org
+geogig --repo $PGREPO_nybike shp import /home/ec2-user/test_data/bikepathsm.shp
+geogig --repo $PGREPO_nybike add
+geogig --repo $PGREPO_nybike commit -m "initial import"
+#publish
+curl -v -u admin:geoserver -XPOST -H "Content-type: text/xml" -d "<featureType><name>bikepathsm</name></featureType>" http://localhost:8080/geoserver/rest/workspaces/gig/datastores/NY_bikepath_store/featuretypes

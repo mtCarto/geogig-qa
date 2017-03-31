@@ -58,6 +58,19 @@
     dest: /home/ec2-user/test_data/
     remote_src: true
     
+# - name: download sample buildings data from S3
+#   s3:
+#     bucket: geogig-qa
+#     object: /performance-test-data/nyc_bikepaths.zip
+#     dest: /home/ec2-user/test_data/nyc_bikepaths.zip
+#     mode: get
+
+- name: unzip streets data
+  unarchive:
+    src: /home/ec2-user/test_data/nyc_bikepaths.zip
+    dest: /home/ec2-user/test_data/
+    remote_src: true
+    
 - name: create db for data
   postgresql_db:
     name: test_data
