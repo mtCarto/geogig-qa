@@ -131,11 +131,16 @@
   ec2:
     vpc_subnet_id: "{{ geoserver_subnet.subnet.id }}"
     region: "{{ aws_region }}"
-    keypair: mthompson
+    keypair: geogig-qa
     group_id: "{{ gig_qa_securitygroup.group_id }}"
     image: "{{ gs_aws_image }}"
     instance_type: "{{ gs_aws_instance_type }}"
     source_dest_check: no
+    volumes:
+      - device_name: /dev/xvda
+        volume_type: gp2
+        volume_size: 40
+        delete_on_termination: true
     instance_tags:
       type: "gig-qa-geoserver"
       Name: "GIG-QA geoserver"
@@ -169,7 +174,7 @@
   ec2:
     vpc_subnet_id: "{{ geoserver_subnet.subnet.id }}"
     region: "{{ aws_region }}"
-    keypair: mthompson
+    keypair: geogig-qa
     assign_public_ip: true
     group_id: "{{ gig_qa_securitygroup.group_id }}"
     image: "{{ jmeter_aws_image }}"

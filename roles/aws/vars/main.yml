@@ -6,5 +6,5 @@ subnet_rds: 10.0.2.0/24
 gs_aws_image: ami-0b33d91d
 gs_aws_instance_type: m4.2xlarge
 jmeter_aws_image: ami-0b33d91d
-jmeter_aws_instance_type: c4.xlarge
+jmeter_aws_instance_type: t2.small
 rds_aws_instance_type: db.m4.xlarge
