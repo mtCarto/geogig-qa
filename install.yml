@@ -1,6 +1,9 @@
 - name: Set geoserver public IP in ssh.cfg
   hosts: tag_type_gig_qa_geoserver
   gather_facts: false
+  pre_tasks:
+  - name: refresh inventory to pick up freshly deployed boxes
+    meta: refresh_inventory
   vars:
     eip: "{{ hostvars[inventory_hostname]['ec2_ip_address'] }}"
   tasks:
@@ -20,7 +23,6 @@
     
 - name: Provision jmeter instance
   hosts: tag_type_gig_qa_jmeter
-  become: yes
   remote_user: ec2-user
   roles:
     - jmeter
