@@ -14,7 +14,7 @@
 - name: install jmeter
   unarchive:
     src: http://httpd-mirror.frgl.pw/apache//jmeter/binaries/apache-jmeter-3.1.tgz
-    dest: /opt/
+    dest: /home/ec2-user
     remote_src: true
 
 - name: add jmeter to PATH
@@ -23,7 +23,7 @@
     state=present
     backrefs=no
     regexp="export PATH"
-    line="export PATH=$PATH{{':'}}/opt/apache-jmeter-3.1/bin"
+    line="export PATH=$PATH{{':'}}/home/ec2-user/apache-jmeter-3.1/bin"
  
 - name: make tests dir
   file: 
@@ -35,7 +35,6 @@
   file:
     path: /home/ec2-user/jmeter_tests/results
     state: directory
-    mode: 0666
     
 - name: copy jmeter tests
   unarchive: 

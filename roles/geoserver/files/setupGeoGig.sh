@@ -54,7 +54,7 @@ curl -v -u admin:geoserver -XPOST -H "Content-type: text/xml" -d "<dataStore><na
 
 geogig --repo $PGREPO_nys config --global user.name tester
 geogig --repo $PGREPO_nys config --global user.email tester@test.org
-geogig --repo $PGREPO_nys shp import /Users/mthompson/GeoGig_TestSupport/test_data/NYstreets_lion.shp
+geogig --repo $PGREPO_nys shp import /home/ec2-user/test_data/NYstreets_lion.shp
 geogig --repo $PGREPO_nys add
 geogig --repo $PGREPO_nys commit -m "initial import"
 #publish
@@ -76,7 +76,7 @@ curl -v -u admin:geoserver -XPOST -H "Content-type: text/xml" -d "<dataStore><na
 
 geogig --repo $PGREPO_nyb config --global user.name tester
 geogig --repo $PGREPO_nyb config --global user.email tester@test.org
-geogig --repo $PGREPO_nyb shp import /Users/mthompson/GeoGig_TestSupport/test_data/building_0117.shp
+geogig --repo $PGREPO_nyb shp import /home/ec2-user/test_data/building_0117.shp
 geogig --repo $PGREPO_nyb add
 geogig --repo $PGREPO_nyb commit -m "initial import"
 #publish
