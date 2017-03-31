@@ -33,17 +33,3 @@
         region: us-east-1
         instance_ids: "{{ ansible_ec2_instance_id }}"
 
-- hosts: test_boxes
-  gather_facts: false
-  tasks:
-  - name: terminate jmeter,geoserver, & rds instance
-    local_action:
-      module: ec2
-      state: 'absent'
-      region: us-east-1
-      instance_ids: "{{ hostvars[inventory_hostname]['ec2_id'] }}"
-  - name: terminate rds instance
-    rds:
-      command: delete
-      instance_name: gig-qa-rds
-      
