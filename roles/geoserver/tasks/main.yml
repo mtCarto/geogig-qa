@@ -72,11 +72,23 @@
 - name: run build
   shell: ./mavenBuild.sh
 
+- name: clean temp war dir
+  file:
+    path: /home/ec2-user/geoserver_war
+    state: absent
+  become: true
+
 - name: make temp war dir
   file:
     path: /home/ec2-user/geoserver_war
     state: directory
-#     
+
+- name: make remove old geoserver dir in tomcat
+  file:
+    path: /usr/share/tomcat8/webapps/geoserver
+    state: absent
+  become: true
+    
 - name: make war dir in tomcat
   file:
     path: /usr/share/tomcat8/webapps/geoserver
