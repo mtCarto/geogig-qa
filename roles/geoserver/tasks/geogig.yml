@@ -52,7 +52,7 @@
 #     dest: /home/ec2-user/test_data/building_footprints.zip
 #     mode: get
 
-- name: unzip streets data
+- name: unzip buildings data
   unarchive:
     src: /home/ec2-user/test_data/building_footprints.zip
     dest: /home/ec2-user/test_data/
@@ -65,7 +65,7 @@
 #     dest: /home/ec2-user/test_data/nyc_bikepaths.zip
 #     mode: get
 
-- name: unzip streets data
+- name: unzip bike data
   unarchive:
     src: /home/ec2-user/test_data/nyc_bikepaths.zip
     dest: /home/ec2-user/test_data/
