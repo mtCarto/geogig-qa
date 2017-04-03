@@ -37,8 +37,9 @@ geogig --repo $PGREPO commit -m "initial import"
 
 #publish the layer in GS
 curl -v -u admin:geoserver -XPOST -H "Content-type: text/xml" -d "<featureType><name>us_histcounties_gen001_no_index</name></featureType>" http://localhost:8080/geoserver/rest/workspaces/gig/datastores/counties_store/featuretypes
-# ##have to manually recalculate BBOX using SRS bounds or WMS requests will fail
-# #could implement REST param for recalculate=srsbbox, see existing recalculate=nativebbox
+
+# something up with this layer, doesn't display now
+# curl -v -u admin:geoserver -XPUT -H "Content-type: text/xml" -T /home/ec2-user/us_histcounties_gen001_no_index.xml  http://localhost:8080/geoserver/rest/workspaces/gig/datastores/counties_store/featuretypes/us_histcounties_gen001_no_index.xml
 
 #########ny streets data
 curl -X PUT -H "Content-Type: application/json" -d "{
@@ -100,8 +101,8 @@ curl -v -u admin:geoserver -XPOST -H "Content-type: text/xml" -d "<dataStore><na
 
 geogig --repo $PGREPO_nybike config --global user.name tester
 geogig --repo $PGREPO_nybike config --global user.email tester@test.org
-geogig --repo $PGREPO_nybike shp import /home/ec2-user/test_data/bikepathsm.shp
+geogig --repo $PGREPO_nybike shp import /home/ec2-user/test_data/bikepaths.shp
 geogig --repo $PGREPO_nybike add
 geogig --repo $PGREPO_nybike commit -m "initial import"
 #publish
-curl -v -u admin:geoserver -XPOST -H "Content-type: text/xml" -d "<featureType><name>bikepathsm</name></featureType>" http://localhost:8080/geoserver/rest/workspaces/gig/datastores/NY_bikepath_store/featuretypes
+curl -v -u admin:geoserver -XPOST -H "Content-type: text/xml" -d "<featureType><name>bikepaths</name></featureType>" http://localhost:8080/geoserver/rest/workspaces/gig/datastores/NY_bikepath_store/featuretypes
