@@ -19,6 +19,9 @@
   `./hosts/ec2.py --refresh-cache`
   `ansible-playbook -i hosts/ install.yml`
   
+**Provision a specific version of geoserver**
+  `ansible-playbook -i hosts/ install.yml --extra-vars "geoserver_version=2.9.x"`
+  
 **Provision specific instances/roles :**  
  `ansible-playbook -i hosts/ install.yml --limit tag_type_gig_qa_geoserver`
 
