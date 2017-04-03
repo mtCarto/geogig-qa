@@ -116,6 +116,12 @@
     remote_src: yes
   become: true
     
+- name: clean data dir
+  file:
+    path: /var/opt/geoserver/data
+    state: absent
+  become: true
+
 - name: create data dir
   file:
     path: /var/opt/geoserver/data
