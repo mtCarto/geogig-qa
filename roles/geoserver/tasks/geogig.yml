@@ -32,6 +32,11 @@
 #     dest: /home/ec2-user/test_data/counties.sql
 #     mode: get
 
+- name: copy counties featureType xml
+  copy:
+    src: us_histcounties_gen001_no_index.xml
+    dest: /home/ec2-user/
+
 # - name: download sample streets data from S3
 #   s3:
 #     bucket: geogig-qa
